@@ -1,0 +1,12 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: transit-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - transit-wallet-net
+
+networks:
+  transit-wallet-net:
+    driver: bridge

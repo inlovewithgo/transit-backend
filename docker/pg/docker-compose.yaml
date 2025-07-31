@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: transit-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: transit_wallet
+    ports:
+      - "5432:5432"
+    networks:
+      - transit-wallet-net
+
+networks:
+  transit-wallet-net:
+    driver: bridge
