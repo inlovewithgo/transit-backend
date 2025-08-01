@@ -17,12 +17,12 @@ func InitDatabase() {
 	once.Do(func() {
 		cfg, err := db.LoadConfig()
 		if err != nil {
-			logger.Log.Fatal("Unable to load Database configuration: ", err)
+			logger.Log.Fatal("Unable to load Database configuration: ")
 		}
 
 		inst, err := db.NewGormDB(cfg)
 		if err != nil {
-			logger.Log.Fatal("Unable to connect to Database: ", err)
+			logger.Log.Fatal("Unable to connect to Database: ")
 		}
 
 		DB = inst
