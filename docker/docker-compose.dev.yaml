@@ -1,0 +1,78 @@
+services:
+  transit-app-dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: builder
+    container_name: transit-backend-dev
+    ports:
+      - "3030:3030"
+      - "2345:2345"
+    environment:
+      - PORT=3030
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=transit_wallet
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BROKERS=kafka:9092
+      - GO_ENV=development
+    volumes:
+      - ..:/app
+      - go_mod_cache:/go/pkg/mod
+    working_dir: /app
+    command: ["go", "run", "./cmd/main.go"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - transit-dev-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: transit-postgres-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: transit_wallet
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - transit-dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d transit_wallet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: transit-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - transit-dev-network
+    restart: unless-stopped
+
+networks:
+  transit-dev-network:
+    driver: bridge
+    name: transit-dev-network
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  go_mod_cache:
+    driver: local

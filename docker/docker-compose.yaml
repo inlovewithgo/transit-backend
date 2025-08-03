@@ -1,0 +1,28 @@
+# Production Docker Compose - Main Application Only
+services:
+  transit-app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: transit-backend
+    ports:
+      - "3030:3030"
+    environment:
+      - PORT=3030
+      - DB_HOST=localhost
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=transit_wallet
+      - REDIS_HOST=localhost
+      - REDIS_PORT=6379
+      - KAFKA_BROKERS=localhost:9092
+      - GO_ENV=production
+    network_mode: "host"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3030/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
