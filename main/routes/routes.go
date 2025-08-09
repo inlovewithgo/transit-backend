@@ -5,7 +5,8 @@ import (
 	"github.com/inlovewithgo/transit-backend/main/config"
 	handlers "github.com/inlovewithgo/transit-backend/main/handlers/api/basic"
 	authHandlers "github.com/inlovewithgo/transit-backend/main/handlers/auth"
-	middleware "github.com/inlovewithgo/transit-backend/main/middlewares"
+	waitlistHandlers "github.com/inlovewithgo/transit-backend/main/handlers/waitlist"
+	"github.com/inlovewithgo/transit-backend/main/middlewares"
 	"github.com/inlovewithgo/transit-backend/main/repo/postgres"
 	"github.com/inlovewithgo/transit-backend/main/service"
 )
@@ -13,12 +14,21 @@ import (
 func SetupRoutes(app *fiber.App) {
 	db := config.GetDB()
 
+	// Repositories
 	userRepo := postgres.NewUserRepository(db)
+	waitlistRepo := postgres.NewWaitlistRepository(db)
 
+	// Services
 	mailService := service.NewMailService()
 	authService := service.NewAuthService(userRepo, mailService)
+	waitlistService := service.NewWaitlistService(waitlistRepo, mailService)
 
+	// Handlers
 	authHandler := authHandlers.NewAuthHandler(authService)
+	waitlistHandler := waitlistHandlers.NewWaitlistHandler(waitlistService)
+
+	// Rate limiter
+	rateLimiter := middlewares.NewRateLimiter()
 
 	api := app.Group("/api/v1")
 
@@ -36,7 +46,14 @@ func SetupRoutes(app *fiber.App) {
 		auth.Post("/login", authHandler.Login)
 	}
 
-	protected := api.Group("/", middleware.AuthMiddleware())
+	// Waitlist routes with rate limiting
+	waitlist := api.Group("/waitlist")
+	{
+		waitlist.Post("/", rateLimiter.WaitlistRateLimit(), waitlistHandler.JoinWaitlist)
+		waitlist.Get("/stats", waitlistHandler.GetWaitlistStats)
+	}
+
+	protected := api.Group("/", middlewares.AuthMiddleware())
 	{
 		protected.Get("/profile", authHandler.GetProfile)
 		protected.Post("/logout", authHandler.Logout)

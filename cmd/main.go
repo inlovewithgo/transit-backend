@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/inlovewithgo/transit-backend/main/config"
-	middleware "github.com/inlovewithgo/transit-backend/main/middlewares"
+	"github.com/inlovewithgo/transit-backend/main/middlewares"
 	"github.com/inlovewithgo/transit-backend/main/routes"
 	"github.com/joho/godotenv"
 )
@@ -44,7 +44,7 @@ func main() {
 		},
 	})
 
-	middleware.SetupMiddleware(app)
+	middlewares.SetupMiddleware(app)
 	routes.SetupRoutes(app)
 
 	c := make(chan os.Signal, 1)

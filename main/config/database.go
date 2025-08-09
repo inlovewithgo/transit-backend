@@ -39,6 +39,7 @@ func runMigrations(db *gorm.DB) error {
 	// Auto-migrate all models
 	err := db.AutoMigrate(
 		&models.User{},
+		&models.Waitlist{},
 		// Add other models here as you create them
 	)
 
