@@ -122,9 +122,5 @@ func isValidEmail(email string) bool {
 	}
 
 	domain := email[atIndex+1:]
-	if !strings.Contains(domain, ".") {
-		return false
-	}
-
-	return true
+	return strings.Contains(domain, ".")
 }
